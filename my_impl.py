@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.optimize as optim
 from matplotlib import pyplot as plt
 
 
@@ -23,17 +24,31 @@ def forward_solve(x, f, bc1, bc2):
   u = np.concatenate(([bc1], u_trimmed, [bc2]))
   return u
 
+def create_f(a, x):
+  return a * x**2 + 1
 
-def plot_solution():
+def func_to_minimize(a, u_tilde, x, bc1, bc2):
+  f = create_f(a, x)
+  u = forward_solve(x, f, bc1, bc2)
+  # print("here")
+  return np.sum((u - u_tilde)**2)
+
+def primal_minimization():
   bc1 = 0
   bc2 = 0
   x = np.linspace(0,1, 50)
   f = -x**2 + 1
   plt.plot(x, f)
   plt.show()
-  u = forward_solve(x, f, bc1, bc2)
-  plt.plot(x, u)
+  u_tilde = forward_solve(x, f, bc1, bc2)
+  result = optim.minimize(func_to_minimize, -5, args=(u_tilde, x, bc1, bc2), options={'disp':True})
+
+  plt.plot(x, result.x * x**2 + 1)
   plt.show()
+
+
+def plot_solution():
+  primal_minimization()
 
 
 
