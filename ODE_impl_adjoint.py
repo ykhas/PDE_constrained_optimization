@@ -3,7 +3,8 @@ import numpy as np
 import scipy.optimize as optim
 from matplotlib import pyplot as plt
 
-Beta = 0.001
+Beta = 0.000025 * 0
+num_of_times = 0
 def create_D_matrix_full_size(x):
   D_matrix, h = create_D_matrix(x)
   first_col = np.empty(len(x) - 2); first_col.fill(0); first_col[0] = -1/h**2
@@ -39,11 +40,13 @@ def forward_solve(f, bc1, bc2, D_matrix, h):
 def func_to_minimize(f_try, u_tilde, bc1, bc2, D_matrix, h, x):
   global Beta
   u = forward_solve(f_try, bc1, bc2, D_matrix, h)
-  return np.sum((u - u_tilde)**2)
+  global num_of_times
+  num_of_times+=1
+  return np.sum((u - u_tilde)**2) + Beta*np.sum(f_try**2)
 
 def jacobian(f_try, u_tilde, bc1, bc2, D_matrix_small, h, x):
   global Beta
-  # grad_cost_y = Beta * 2 * (f_try)
+  grad_cost_y = Beta * 2 * (f_try)
   u = forward_solve(f_try, bc1, bc2, D_matrix_small, h)
   grad_cost_u = 2 * (u - u_tilde)
 
@@ -52,7 +55,7 @@ def jacobian(f_try, u_tilde, bc1, bc2, D_matrix_small, h, x):
 
   lambda_T = np.linalg.solve(grad_f_u, grad_cost_u)
 
-  return - lambda_T * grad_f_y
+  return grad_cost_y - lambda_T * grad_f_y
 
 def primal_minimization():
   bc1 = 0
@@ -62,8 +65,9 @@ def primal_minimization():
   f_try =  np.random.rand(100)
   D_matrix_small, h = create_D_matrix(x)
   u_tilde = forward_solve(f, bc1, bc2, D_matrix_small, h)
-  result = optim.minimize(func_to_minimize, f_try, args=(u_tilde, bc1, bc2, D_matrix_small, h, x), method='CG', 
-                           options={'disp':True})
+  result = optim.minimize(func_to_minimize, f_try, args=(u_tilde, bc1, bc2, D_matrix_small, h, x), method='CG',
+                          jac=jacobian, 
+                          options={'disp':True})
 
   # now we test it out
   u = forward_solve(result.x, bc1, bc2, D_matrix_small, h)
@@ -72,8 +76,8 @@ def primal_minimization():
   plt.legend()
   plt.show()
 
-  plt.plot(x, result.x, label='computed f')
-  plt.plot(x, f, label='real f')
+  plt.plot(x, result.x, label='computed y')
+  plt.plot(x, f, label='real y')
   plt.legend()
   plt.show()
 
@@ -88,3 +92,4 @@ def plot_solution():
 
 
 plot_solution()
+print(num_of_times)
