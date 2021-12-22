@@ -3,7 +3,7 @@ import numpy as np
 import scipy.optimize as optim
 from matplotlib import pyplot as plt
 
-Beta = 0.000025 * 0
+Beta = 0.0001 * 0
 num_of_times = 0
 def create_D_matrix_full_size(x):
   D_matrix, h = create_D_matrix(x)
@@ -46,7 +46,7 @@ def func_to_minimize(f_try, u_tilde, bc1, bc2, D_matrix, h, x):
 
 def jacobian(f_try, u_tilde, bc1, bc2, D_matrix_small, h, x):
   global Beta
-  grad_cost_y = Beta * 2 * (f_try)
+  grad_cost_y = Beta * 2 * f_try
   u = forward_solve(f_try, bc1, bc2, D_matrix_small, h)
   grad_cost_u = 2 * (u - u_tilde)
 
